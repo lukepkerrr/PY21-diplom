@@ -1,11 +1,10 @@
-def find_groups():
-    import requests
-    import json
-    import time
-    import pprint
-    TOKEN = 'b759f7c046868edeb57b6360e3b507fef5d425a1b34c681de0d378a9fadbc08db9c552f02f968b221ad91'
+import requests
+import json
+import time
+TOKEN = 'b759f7c046868edeb57b6360e3b507fef5d425a1b34c681de0d378a9fadbc08db9c552f02f968b221ad91'
 
 
+if __name__ == '__main__':
     #Получаем id пользователя, на котором вся функция выполняется, id его друзей и id его групп
     main_user = input('Введите id ')
     response_main_user_id = requests.get('https://api.vk.com/method/users.get', {'access_token': TOKEN, 'user_ids': main_user, 'v': '5.92'})
@@ -34,7 +33,7 @@ def find_groups():
         if 'response' in groups_of_friend_response.json():
             groups_of_friend = groups_of_friend_response.json()['response']['items']
             groups_for_compare.append(groups_of_friend)
-        time.sleep(0.4)
+        time.sleep(0.334)
         print('.')
 
 
@@ -46,11 +45,7 @@ def find_groups():
 
 
     #Делаем из списка оставшихся id строку для дальнейшего получения полной инфы о группах
-    i = 0
-    while i < len(groups_main_ids):
-        groups_main_ids[i] = str(groups_main_ids[i])
-        i+=1
-    groups_main_ids_str = ','.join(groups_main_ids)
+    groups_main_ids_str = ','.join(map(str, groups_main_ids))
 
 
     #Получаем нужную инфу по группам
@@ -63,21 +58,17 @@ def find_groups():
     groups_info_responce = requests.get('https://api.vk.com/method/groups.getById', params_for_groups)
     groups_info = groups_info_responce.json()['response']
 
-
     #Создаем json файл
     for_json = []
     for group in groups_info:
         cell = {
-            "name": "{}".format(group['name']),
-            "gid": "{}".format(group['id']),
-            "members_count": group['members_count']
+            "name": f"{group['name']}",
+            "gid": f"{group['id']}"
         }
+        if 'members_count' in group:
+             cell.update({"members_count": group['members_count']})
         for_json.append(cell)
-    json_file = json.dumps(for_json)
-    with open('groups.json', 'w') as file:
-        file.write(json_file)
+    with open('groups.json', 'w', encoding='utf8') as file:
+        json.dump(for_json, file, ensure_ascii=False)
 
     print('Работа программы завершена')
-
-
-find_groups()
